@@ -1,4 +1,4 @@
-package commandform
+package workflowform
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
@@ -8,11 +8,12 @@ import (
 const (
 	stepName         = iota // Input for command name
 	stepDescription         // Input for command description
-	stepArguments           // Input for command arguments
+	stepCommands            // Input for command arguments
 	stepConfirmation        // Confirm and create command
 )
 
 type Model struct {
+	cursor           int // used for navigating between buttons
 	currentStep      int
 	nameInput        textinput.Model
 	descriptionInput textinput.Model
@@ -75,9 +76,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.nameInput.Blur()
 				m.descriptionInput.Focus()
 			case stepDescription:
-				m.currentStep = stepArguments
-			case stepArguments:
-				// m.currentStep = stepConfirmation
+				m.currentStep = stepCommands
+			case stepCommands:
+				m.currentStep = stepConfirmation
 			}
 
 		case "tab":
@@ -93,7 +94,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				if m.descriptionInput.Value() == "" {
 					break
 				}
-				m.currentStep = stepArguments
+				m.currentStep = stepCommands
 			}
 
 		case "shift+tab":
@@ -102,7 +103,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.currentStep = stepName
 				m.descriptionInput.Blur()
 				m.nameInput.Focus()
-			case stepArguments:
+			case stepCommands:
 				m.currentStep = stepDescription
 				// m.argumentsInput.Blur()
 				m.descriptionInput.Focus()
@@ -120,10 +121,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m, cmd = m.updateStepName(msg)
 	case stepDescription:
 		m, cmd = m.updateStepDescription(msg)
-	case stepArguments:
+	case stepCommands:
 		m, cmd = m.updateStepCommands(msg)
-		// case stepConfirmation:
-		// 	return m.updateStepConfirmation(msg)
+	case stepConfirmation:
+		return m.updateStepConfirmation(msg)
 	}
 	return m, cmd
 }
@@ -134,10 +135,10 @@ func (m Model) View() string {
 		return m.renderStepName()
 	case stepDescription:
 		return m.renderStepDescription()
-	case stepArguments:
+	case stepCommands:
 		return m.renderStepCommands()
-	// case stepConfirmation:
-	// 	return m.renderStepConfirmation()
+	case stepConfirmation:
+		return m.renderStepConfirmation()
 	default:
 		return "Unknown step"
 	}

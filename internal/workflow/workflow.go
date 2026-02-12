@@ -11,10 +11,10 @@ import (
 type StepType string
 
 const (
-	StepTypeInput      StepType = "input"
-	StepTypeSelect     StepType = "select"
-	StepTypeConfirm    StepType = "confirm"
-	StepTypeCommand    StepType = "command"
+	StepTypeInput   StepType = "input"
+	StepTypeSelect  StepType = "select"
+	StepTypeConfirm StepType = "confirm"
+	StepTypeCommand StepType = "command"
 )
 
 // Step represents a single step in a workflow
@@ -23,7 +23,7 @@ type Step struct {
 	Prompt         string   `json:"prompt,omitempty"`
 	Variable       string   `json:"variable,omitempty"`
 	Options        []string `json:"options,omitempty"`
-	Exec           string   `json:"exec,omitempty"`
+	Command        string   `json:"command,omitempty"`
 	Description    string   `json:"description,omitempty"`
 	CaptureOutput  bool     `json:"capture_output,omitempty"`
 	OutputVariable string   `json:"output_variable,omitempty"`
@@ -50,7 +50,7 @@ func NewStore() (*Store, error) {
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "cmdr")
-	
+
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
@@ -85,7 +85,7 @@ func (s *Store) List() ([]Workflow, error) {
 // Load loads a workflow by name
 func (s *Store) Load(name string) (*Workflow, error) {
 	path := filepath.Join(s.configDir, name+".json")
-	
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read workflow file: %w", err)
@@ -102,7 +102,7 @@ func (s *Store) Load(name string) (*Workflow, error) {
 // Save saves a workflow
 func (s *Store) Save(workflow *Workflow) error {
 	path := filepath.Join(s.configDir, workflow.Name+".json")
-	
+
 	data, err := json.MarshalIndent(workflow, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal workflow: %w", err)
@@ -118,7 +118,7 @@ func (s *Store) Save(workflow *Workflow) error {
 // Delete deletes a workflow by name
 func (s *Store) Delete(name string) error {
 	path := filepath.Join(s.configDir, name+".json")
-	
+
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("failed to delete workflow: %w", err)
 	}
@@ -132,4 +132,3 @@ func (s *Store) Exists(name string) bool {
 	_, err := os.Stat(path)
 	return err == nil
 }
-

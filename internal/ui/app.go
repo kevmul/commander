@@ -139,7 +139,7 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.New):
 			m.action = "create"
 			m.showModal = true
-			m.modal = modal.NewCreateCommand(m.store)
+			m.modal = modal.NewCreateWorkflow(m.store)
 
 			return m, nil
 
@@ -168,6 +168,18 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.ModalClosedMsg:
 		m.showModal = false
 		m.modal = nil
+
+	case messages.ShowModalMsg:
+		m.showModal = true
+		switch msg.ModalType {
+		case "create_command":
+			m.modal = modal.NewCreateCommand()
+			// case "edit_command":
+			// 	if item, ok := m.list.SelectedItem().(workflowItem); ok {
+			// 		m.selected = &item.Workflow
+			// 		m.modal = modal.NewEditWorkflow(m.store, m.selected)
+			// 	}
+		}
 
 	}
 	if m.showModal && m.modal != nil {

@@ -1,4 +1,4 @@
-package commandform
+package workflowform
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

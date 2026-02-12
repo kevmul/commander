@@ -6,8 +6,9 @@ import (
 
 	"github.com/kevmul/cmdr/internal/messages"
 	"github.com/kevmul/cmdr/internal/styles"
-	"github.com/kevmul/cmdr/internal/ui/components/command_form"
+	"github.com/kevmul/cmdr/internal/ui/components/command_wizard"
 	"github.com/kevmul/cmdr/internal/ui/components/confirmation"
+	"github.com/kevmul/cmdr/internal/ui/components/workflow_form"
 	"github.com/kevmul/cmdr/internal/utils"
 	"github.com/kevmul/cmdr/internal/workflow"
 
@@ -19,47 +20,94 @@ import (
 type ModalType int
 
 const (
-	CreateCmd ModalType = iota
-	UpdateCmd
+	// Workflow Modals
+	CreateWorkflow ModalType = iota
+	UpdateWorkflow
+	// Command Modals
+	CreateCommand
+	UpdateCommand
+	// Delete Confirmation Modal
 	DeleteConfirmation
 	HelpModal
 )
 
 type Model struct {
-	modalType          ModalType
-	create             *commandform.Model
-	update             *commandform.Model
+	modalType      ModalType
+	createWorkflow *workflowform.Model
+	updateWorkflow *workflowform.Model
+
+	createCommand *commandwizard.Model
+	updateCommand *workflowform.Model
+
 	deleteConfirmation *confirmation.Model
 	// UI
 	viewport viewport.Model
 	title    string
 }
 
-func NewCreateCommand(store *workflow.Store) *Model {
-	createCmd := commandform.New()
+// =========================================
+// Workflow Modals
+// =========================================
+
+func NewCreateWorkflow(store *workflow.Store) *Model {
+	createWorkflow := workflowform.New()
 	viewport := viewport.New(0, 4)
-	viewport.SetContent(createCmd.View())
+	viewport.SetContent(createWorkflow.View())
 
 	return &Model{
-		modalType: CreateCmd,
-		create:    &createCmd,
-		viewport:  viewport,
-		title:     "Create New Command",
+		modalType:      CreateWorkflow,
+		createWorkflow: &createWorkflow,
+		viewport:       viewport,
+		title:          "Create New Workflow",
 	}
 }
 
-func NewUpdateCommand(commandId string) *Model {
-	updateCmd := commandform.NewUpdate(commandId)
+func NewUpdateWorkflow(workflowId string) *Model {
+	updateWorkflow := workflowform.NewUpdate(workflowId)
 	viewport := viewport.New(0, 4)
-	viewport.SetContent(updateCmd.View())
+	viewport.SetContent(updateWorkflow.View())
 
 	return &Model{
-		modalType: UpdateCmd,
-		update:    &updateCmd,
-		viewport:  viewport,
-		title:     "Update Command",
+		modalType:      UpdateWorkflow,
+		updateWorkflow: &updateWorkflow,
+		viewport:       viewport,
+		title:          "Update Workflow",
 	}
 }
+
+// =========================================
+// Command Modals
+// =========================================
+
+func NewCreateCommand() *Model {
+	createCommand := commandwizard.New()
+	viewport := viewport.New(0, 4)
+	viewport.SetContent(createCommand.View())
+
+	return &Model{
+		modalType:     CreateCommand,
+		createCommand: &createCommand,
+		viewport:      viewport,
+		title:         "Create New Command",
+	}
+}
+
+// func NewUpdateCommand(commandId string) *Model {
+// 	updateCommand := commandwizard.NewUpdate()
+// 	viewport := viewport.New(0, 4)
+// 	viewport.SetContent(updateCommand.View())
+//
+// 	return &Model{
+// 		modalType:      UpdateWorkflow,
+// 		updateCommand : &updateCommand,
+// 		viewport:       viewport,
+// 		title:          "Update Command",
+// 	}
+// }
+
+// =========================================
+// Delete Confirmation Modal
+// =========================================
 
 func NewDeleteConfirmation(itemId, itemType string) *Model {
 	deleteConfirmation := confirmation.New(itemId, itemType)
@@ -105,14 +153,21 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			// Update viewport height if content height changes
 			m.viewport.Height = getLines(m.deleteConfirmation.View())
 		}
-	case CreateCmd:
-		*m.create, cmd = m.create.Update(msg)
-		if getLines(m.create.View()) != m.viewport.TotalLineCount() {
+	case CreateWorkflow:
+		*m.createWorkflow, cmd = m.createWorkflow.Update(msg)
+		if getLines(m.createWorkflow.View()) != m.viewport.TotalLineCount() {
 			// Update viewport height if content height changes
-			m.viewport.Height = min(styles.ModalHeight, getLines(m.create.View())+1)
+			m.viewport.Height = min(styles.ModalHeight, getLines(m.createWorkflow.View())+1)
 		}
-	case UpdateCmd:
-		*m.update, cmd = m.update.Update(msg)
+	case UpdateWorkflow:
+		*m.updateWorkflow, cmd = m.updateWorkflow.Update(msg)
+
+	case CreateCommand:
+		*m.createCommand, cmd = m.createCommand.Update(msg)
+		if getLines(m.createCommand.View()) != m.viewport.TotalLineCount() {
+			// Update viewport height if content height changes
+			m.viewport.Height = min(styles.ModalHeight, getLines(m.createCommand.View())+1)
+		}
 	}
 	cmds = append(cmds, cmd)
 
@@ -181,8 +236,10 @@ func createBorderTitle(title string, modalWidth int, withScroll bool) string {
 
 func (m Model) RenderContent() string {
 	switch m.modalType {
-	case CreateCmd:
-		return m.create.View()
+	case CreateWorkflow:
+		return m.createWorkflow.View()
+	case CreateCommand:
+		return m.createCommand.View()
 	case DeleteConfirmation:
 		return m.deleteConfirmation.View()
 	}

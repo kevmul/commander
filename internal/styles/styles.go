@@ -84,6 +84,13 @@ var (
 				BorderForeground(Muted).
 				Padding(0, 1)
 
+	// List styles
+	SelectedItemStyle = lipgloss.NewStyle().
+				Foreground(Secondary).
+				Bold(true)
+
+	NormalItemStyle = lipgloss.NewStyle()
+
 	// Command Styles
 	CommandStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.RoundedBorder()).

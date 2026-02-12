@@ -41,5 +41,3 @@ func (p *Parser) Parse(template string) string {
 func (p *Parser) Reset() {
 	p.variables = make(map[string]string)
 }
-
-

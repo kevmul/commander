@@ -158,8 +158,8 @@ func (m *editorModel) View() string {
 	} else {
 		for i, step := range m.steps {
 			stepDesc := fmt.Sprintf("  %d. [%s] %s", i+1, step.Type, step.Prompt)
-			if step.Exec != "" {
-				stepDesc = fmt.Sprintf("  %d. [%s] %s", i+1, step.Type, step.Exec)
+			if step.Command != "" {
+				stepDesc = fmt.Sprintf("  %d. [%s] %s", i+1, step.Type, step.Command)
 			}
 			b.WriteString(styles.BlurredInputStyle.Render(stepDesc) + "\n")
 		}
