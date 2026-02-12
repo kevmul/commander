@@ -3,16 +3,12 @@ package ui
 import (
 	"fmt"
 	"strings"
+
+	"github.com/kevmul/cmdr/internal/styles"
 	"github.com/kevmul/cmdr/internal/workflow"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 )
 
 type editorModel struct {
@@ -151,21 +147,21 @@ func (m *editorModel) View() string {
 	b.WriteString("\n")
 	stepsLabel := "Steps:"
 	if m.focusIndex == 2 {
-		stepsLabel = focusedStyle.Render("> " + stepsLabel)
+		stepsLabel = styles.FocusedInputStyle.Render("> " + stepsLabel)
 	} else {
-		stepsLabel = blurredStyle.Render("  " + stepsLabel)
+		stepsLabel = styles.BlurredInputStyle.Render("  " + stepsLabel)
 	}
 	b.WriteString(stepsLabel + "\n")
 
 	if len(m.steps) == 0 {
-		b.WriteString(blurredStyle.Render("  (no steps added yet)\n"))
+		b.WriteString(styles.BlurredInputStyle.Render("  (no steps added yet)\n"))
 	} else {
 		for i, step := range m.steps {
 			stepDesc := fmt.Sprintf("  %d. [%s] %s", i+1, step.Type, step.Prompt)
 			if step.Exec != "" {
 				stepDesc = fmt.Sprintf("  %d. [%s] %s", i+1, step.Type, step.Exec)
 			}
-			b.WriteString(blurredStyle.Render(stepDesc) + "\n")
+			b.WriteString(styles.BlurredInputStyle.Render(stepDesc) + "\n")
 		}
 	}
 
@@ -179,9 +175,9 @@ func (m *editorModel) inputView(index int, label string, input textinput.Model) 
 	var b strings.Builder
 
 	if m.focusIndex == index {
-		b.WriteString(focusedStyle.Render("> " + label))
+		b.WriteString(styles.FocusedInputStyle.Render("> " + label))
 	} else {
-		b.WriteString(blurredStyle.Render("  " + label))
+		b.WriteString(styles.BlurredInputStyle.Render("  " + label))
 	}
 	b.WriteString("\n  ")
 	b.WriteString(input.View())

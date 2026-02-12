@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/kevmul/cmdr/internal/ui"
 	"github.com/kevmul/cmdr/internal/workflow"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -20,46 +20,11 @@ Store your common dev tasks as reusable workflows with inputs, selections, and c
 			return err
 		}
 
-		action, selected, err := ui.RunMainUI(store)
+		m, err := ui.NewMainModel(store)
+		p := tea.NewProgram(m, tea.WithAltScreen())
+		_, err = p.Run()
 		if err != nil {
 			return err
-		}
-
-		switch action {
-		case "run":
-			if selected != nil {
-				executor := workflow.NewExecutor()
-				return executor.Execute(selected)
-			}
-		case "create":
-			wf, err := ui.RunEditorUI(nil, false)
-			if err != nil {
-				fmt.Println("Cancelled")
-				return nil
-			}
-			if err := store.Save(wf); err != nil {
-				return err
-			}
-			fmt.Printf("✅ Workflow '%s' created successfully!\n", wf.Name)
-		case "edit":
-			if selected != nil {
-				wf, err := ui.RunEditorUI(selected, true)
-				if err != nil {
-					fmt.Println("Cancelled")
-					return nil
-				}
-				if err := store.Save(wf); err != nil {
-					return err
-				}
-				fmt.Printf("✅ Workflow '%s' updated successfully!\n", wf.Name)
-			}
-		case "delete":
-			if selected != nil {
-				if err := store.Delete(selected.Name); err != nil {
-					return err
-				}
-				fmt.Printf("✅ Workflow '%s' deleted successfully!\n", selected.Name)
-			}
 		}
 
 		return nil

@@ -1,6 +1,10 @@
 package ui
 
 import (
+	"github.com/kevmul/cmdr/internal/messages"
+	"github.com/kevmul/cmdr/internal/styles"
+	"github.com/kevmul/cmdr/internal/ui/components/modal"
+	"github.com/kevmul/cmdr/internal/utils"
 	"github.com/kevmul/cmdr/internal/workflow"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -64,9 +68,18 @@ type mainModel struct {
 	store    *workflow.Store
 	selected *workflow.Workflow
 	action   string // "run", "edit", "delete", "create", ""
+
+	showModal bool
+	modal     *modal.Model
+
+	width  int
+	height int
+
+	ready bool
 }
 
 func NewMainModel(store *workflow.Store) (tea.Model, error) {
+
 	workflows, err := store.List()
 	if err != nil {
 		return nil, err
@@ -77,8 +90,16 @@ func NewMainModel(store *workflow.Store) (tea.Model, error) {
 		items[i] = workflowItem{w}
 	}
 
-	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	d := list.NewDefaultDelegate()
+	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(styles.Primary).BorderLeftForeground(styles.Primary)
+	d.Styles.SelectedDesc = d.Styles.SelectedDesc.Foreground(styles.Tertiary).BorderLeftForeground(styles.Primary)
+
+	l := list.New(items, d, 0, 0)
 	l.Title = "Command Runner"
+	l.SetShowTitle(false)
+	l.SetShowStatusBar(true)
+	l.SetFilteringEnabled(true)
+	l.SetShowHelp(false)
 	l.SetShowHelp(false)
 
 	return &mainModel{
@@ -92,20 +113,35 @@ func (m *mainModel) Init() tea.Cmd {
 }
 
 func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
+
 	case tea.WindowSizeMsg:
 		h, v := lipgloss.NewStyle().GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v-4)
+		m.width = msg.Width
+		m.height = msg.Height
+		m.ready = true
 		return m, nil
 
 	case tea.KeyMsg:
+		if m.showModal {
+			// Let the modal handle key messages
+			break
+		}
+
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
 
 		case key.Matches(msg, keys.New):
 			m.action = "create"
-			return m, tea.Quit
+			m.showModal = true
+			m.modal = modal.NewCreateCommand(m.store)
+
+			return m, nil
 
 		case key.Matches(msg, keys.Edit):
 			if item, ok := m.list.SelectedItem().(workflowItem); ok {
@@ -128,39 +164,51 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
+
+	case messages.ModalClosedMsg:
+		m.showModal = false
+		m.modal = nil
+
+	}
+	if m.showModal && m.modal != nil {
+		*m.modal, cmd = m.modal.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	if !m.showModal {
+		m.list, cmd = m.list.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+	return m, tea.Batch(cmds...)
 }
 
 func (m *mainModel) View() string {
+
 	helpText := helpStyle.Render("[n] New  [e] Edit  [d] Delete  [↵] Run  [q] Quit")
-	return m.list.View() + "\n" + helpText
+	currentView := m.list.View() + "\n" + helpText
+
+	if m.showModal && m.modal != nil {
+		currentView = utils.RenderWithModal(m.height, m.width, currentView, m.modal.View())
+	}
+
+	return currentView
 }
 
 func (m *mainModel) GetAction() (string, *workflow.Workflow) {
 	return m.action, m.selected
 }
 
-func RunMainUI(store *workflow.Store) (string, *workflow.Workflow, error) {
+func RunMainUI(store *workflow.Store) error {
 	m, err := NewMainModel(store)
 	if err != nil {
-		return "", nil, err
+		return err
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	finalModel, err := p.Run()
+	_, err = p.Run()
 	if err != nil {
-		return "", nil, err
+		return err
 	}
 
-	mainModel := finalModel.(*mainModel)
-
-	action, workflow := mainModel.GetAction()
-
-	return action, workflow, nil
+	return nil
 }
-
-
