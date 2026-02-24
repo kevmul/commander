@@ -20,6 +20,7 @@ import (
 type ModalType int
 
 const (
+
 	// Workflow Modals
 	CreateWorkflow ModalType = iota
 	UpdateWorkflow
@@ -32,9 +33,13 @@ const (
 )
 
 type Model struct {
+	modalStack   []ModalType
+	currentModal ModalType
+
 	modalType      ModalType
 	createWorkflow *workflowform.Model
 	updateWorkflow *workflowform.Model
+	// workflowStep
 
 	createCommand *commandwizard.Model
 	updateCommand *workflowform.Model

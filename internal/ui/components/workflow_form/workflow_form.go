@@ -3,13 +3,14 @@ package workflowform
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kevmul/cmdr/internal/messages"
 )
 
 const (
-	stepName         = iota // Input for command name
-	stepDescription         // Input for command description
-	stepCommands            // Input for command arguments
-	stepConfirmation        // Confirm and create command
+	stepName        = iota // Input for command name
+	stepDescription        // Input for command description
+	// stepCommands            // Input for command arguments
+	stepConfirmation // Confirm and create command
 )
 
 type Model struct {
@@ -76,9 +77,17 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.nameInput.Blur()
 				m.descriptionInput.Focus()
 			case stepDescription:
-				m.currentStep = stepCommands
-			case stepCommands:
-				m.currentStep = stepConfirmation
+				// m.currentStep = stepCommands
+				// case stepCommands:
+				// 	m.currentStep = stepConfirmation
+				// Create a message to create the command and quit the form
+				return m, tea.Batch(func() tea.Msg {
+					return messages.WorkflowCreateMsg{
+						Name:        m.nameInput.Value(),
+						Description: m.descriptionInput.Value(),
+					}
+				})
+
 			}
 
 		case "tab":
@@ -94,7 +103,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				if m.descriptionInput.Value() == "" {
 					break
 				}
-				m.currentStep = stepCommands
+				// m.currentStep = stepCommands
 			}
 
 		case "shift+tab":
@@ -103,10 +112,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.currentStep = stepName
 				m.descriptionInput.Blur()
 				m.nameInput.Focus()
-			case stepCommands:
-				m.currentStep = stepDescription
+				// case stepCommands:
+				// m.currentStep = stepDescription
 				// m.argumentsInput.Blur()
-				m.descriptionInput.Focus()
+				// m.descriptionInput.Focus()
 				// case stepConfirmation:
 				// 	m.currentStep = stepArguments
 				// 	m.confirmationInput.Blur()
@@ -121,8 +130,8 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m, cmd = m.updateStepName(msg)
 	case stepDescription:
 		m, cmd = m.updateStepDescription(msg)
-	case stepCommands:
-		m, cmd = m.updateStepCommands(msg)
+	// case stepCommands:
+	// 	m, cmd = m.updateStepCommands(msg)
 	case stepConfirmation:
 		return m.updateStepConfirmation(msg)
 	}
@@ -135,8 +144,8 @@ func (m Model) View() string {
 		return m.renderStepName()
 	case stepDescription:
 		return m.renderStepDescription()
-	case stepCommands:
-		return m.renderStepCommands()
+	// case stepCommands:
+	// 	return m.renderStepCommands()
 	case stepConfirmation:
 		return m.renderStepConfirmation()
 	default:

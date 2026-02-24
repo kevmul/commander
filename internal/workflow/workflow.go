@@ -39,7 +39,7 @@ type Workflow struct {
 
 // Store handles loading and saving workflows
 type Store struct {
-	configDir string
+	filePath string
 }
 
 // NewStore creates a new workflow store
@@ -50,85 +50,104 @@ func NewStore() (*Store, error) {
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "cmdr")
-
-	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	return &Store{configDir: configDir}, nil
+	return &Store{filePath: filepath.Join(configDir, "workflows.json")}, nil
+}
+
+// readAll reads all workflows from the file
+func (s *Store) readAll() ([]Workflow, error) {
+	data, err := os.ReadFile(s.filePath)
+	if os.IsNotExist(err) {
+		return []Workflow{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var workflows []Workflow
+	if err := json.Unmarshal(data, &workflows); err != nil {
+		return nil, err
+	}
+	return workflows, nil
+}
+
+// writeAll writes all workflows to the file
+func (s *Store) writeAll(workflows []Workflow) error {
+	data, err := json.MarshalIndent(workflows, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(s.filePath, data, 0644)
 }
 
 // List returns all available workflows
 func (s *Store) List() ([]Workflow, error) {
-	entries, err := os.ReadDir(s.configDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read config directory: %w", err)
-	}
-
-	var workflows []Workflow
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
-			continue
-		}
-
-		workflow, err := s.Load(entry.Name()[:len(entry.Name())-5]) // Remove .json
-		if err != nil {
-			continue // Skip invalid workflows
-		}
-		workflows = append(workflows, *workflow)
-	}
-
-	return workflows, nil
+	return s.readAll()
 }
 
 // Load loads a workflow by name
 func (s *Store) Load(name string) (*Workflow, error) {
-	path := filepath.Join(s.configDir, name+".json")
-
-	data, err := os.ReadFile(path)
+	workflows, err := s.readAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read workflow file: %w", err)
+		return nil, err
 	}
 
-	var workflow Workflow
-	if err := json.Unmarshal(data, &workflow); err != nil {
-		return nil, fmt.Errorf("failed to parse workflow: %w", err)
+	for _, w := range workflows {
+		if w.Name == name {
+			return &w, nil
+		}
 	}
-
-	return &workflow, nil
+	return nil, fmt.Errorf("workflow not found: %s", name)
 }
 
 // Save saves a workflow
 func (s *Store) Save(workflow *Workflow) error {
-	path := filepath.Join(s.configDir, workflow.Name+".json")
-
-	data, err := json.MarshalIndent(workflow, "", "  ")
+	workflows, err := s.readAll()
 	if err != nil {
-		return fmt.Errorf("failed to marshal workflow: %w", err)
+		return err
 	}
 
-	if err := os.WriteFile(path, data, 0644); err != nil {
-		return fmt.Errorf("failed to write workflow file: %w", err)
+	for i, w := range workflows {
+		if w.Name == workflow.Name {
+			workflows[i] = *workflow
+			return s.writeAll(workflows)
+		}
 	}
 
-	return nil
+	workflows = append(workflows, *workflow)
+	return s.writeAll(workflows)
 }
 
 // Delete deletes a workflow by name
 func (s *Store) Delete(name string) error {
-	path := filepath.Join(s.configDir, name+".json")
-
-	if err := os.Remove(path); err != nil {
-		return fmt.Errorf("failed to delete workflow: %w", err)
+	workflows, err := s.readAll()
+	if err != nil {
+		return err
 	}
 
-	return nil
+	for i, w := range workflows {
+		if w.Name == name {
+			workflows = append(workflows[:i], workflows[i+1:]...)
+			return s.writeAll(workflows)
+		}
+	}
+	return fmt.Errorf("workflow not found: %s", name)
 }
 
 // Exists checks if a workflow exists
 func (s *Store) Exists(name string) bool {
-	path := filepath.Join(s.configDir, name+".json")
-	_, err := os.Stat(path)
-	return err == nil
+	workflows, err := s.readAll()
+	if err != nil {
+		return false
+	}
+
+	for _, w := range workflows {
+		if w.Name == name {
+			return true
+		}
+	}
+	return false
 }

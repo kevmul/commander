@@ -19,6 +19,11 @@ type ItemDeletedMsg struct {
 // Workflow messages
 // =====================================
 
+type WorkflowCreateMsg struct {
+	Name        string
+	Description string
+}
+
 type WorkflowCreatedMsg struct {
 	WorkflowID string
 }

@@ -181,6 +181,30 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// 	}
 		}
 
+	case messages.WorkflowCreateMsg:
+		newWorkflow := workflow.Workflow{
+			Name:        msg.Name,
+			Description: msg.Description,
+		}
+		err := m.store.Save(&newWorkflow)
+		if err != nil {
+			// Handle error (e.g., show an error modal)
+			break
+		}
+		m.showModal = false
+		m.modal = nil
+
+		// Refresh the workflow list
+		workflows, err := m.store.List()
+		if err != nil {
+			break
+		}
+		items := make([]list.Item, len(workflows))
+		for i, w := range workflows {
+			items[i] = workflowItem{w}
+		}
+		m.list.SetItems(items)
+
 	}
 	if m.showModal && m.modal != nil {
 		*m.modal, cmd = m.modal.Update(msg)
