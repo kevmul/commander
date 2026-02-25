@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/kevmul/cmdr/internal/messages"
 	"github.com/kevmul/cmdr/internal/styles"
 	"github.com/kevmul/cmdr/internal/ui/components/modal"
@@ -64,7 +66,10 @@ type workflowItem struct {
 	workflow.Workflow
 }
 
-func (i workflowItem) Title() string       { return i.Name }
+func (i workflowItem) Title() string {
+	key := styles.MutedTextStyle.Render(fmt.Sprintf("(%s)", i.Key))
+	return fmt.Sprintf("%s %s", i.Name, key)
+}
 func (i workflowItem) Description() string { return i.Workflow.Description }
 func (i workflowItem) FilterValue() string { return i.Name }
 
