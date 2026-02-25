@@ -85,6 +85,10 @@ func (e *Executor) executeCommand(step Step, stepNum, totalSteps int) error {
 
 	cmd := exec.Command("sh", "-c", command)
 
+	if step.Interactive {
+		cmd.Stdin = os.Stdin
+	}
+
 	if step.CaptureOutput {
 		var stdout, stderr bytes.Buffer
 		cmd.Stdout = &stdout

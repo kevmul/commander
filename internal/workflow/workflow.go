@@ -12,6 +12,16 @@ import (
 // StepType represents the type of step in a workflow
 type StepType string
 
+// SelectOption represents a key-value select option.
+// If Value is empty, Text is used as both display and value.
+type SelectOption struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
+}
+
+// func (o SelectOption) DisplayText() string   { return o.Text }
+// func (o SelectOption) ResolvedValue() string { return o.Value }
+
 const (
 	StepTypeInput   StepType = "input"
 	StepTypeSelect  StepType = "select"
@@ -21,16 +31,17 @@ const (
 
 // Step represents a single step in a workflow
 type Step struct {
-	Type           StepType `json:"type"`
-	Prompt         string   `json:"prompt,omitempty"`
-	HelpText       string   `json:"helpText,omitempty"`
-	Variable       string   `json:"variable,omitempty"`
-	Options        []string `json:"options,omitempty"`
-	Command        string   `json:"command,omitempty"`
-	Description    string   `json:"description,omitempty"`
-	CaptureOutput  bool     `json:"capture_output,omitempty"`
-	OutputVariable string   `json:"output_variable,omitempty"`
-	DieOnError     bool     `json:"die_on_error,omitempty"`
+	Type           StepType       `json:"type"`
+	Prompt         string         `json:"prompt,omitempty"`
+	HelpText       string         `json:"helpText,omitempty"`
+	Variable       string         `json:"variable,omitempty"`
+	Options        []SelectOption `json:"options,omitempty"`
+	Command        string         `json:"command,omitempty"`
+	Description    string         `json:"description,omitempty"`
+	CaptureOutput  bool           `json:"capture_output,omitempty"`
+	OutputVariable string         `json:"output_variable,omitempty"`
+	Interactive    bool           `json:"interactive,omitempty"`
+	DieOnError     bool           `json:"die_on_error,omitempty"`
 }
 
 // Workflow represents a complete workflow with multiple steps

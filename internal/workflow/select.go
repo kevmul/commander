@@ -12,9 +12,9 @@ import (
 
 type selectModel struct {
 	prompt   string
-	options  []string
+	options  []SelectOption
 	cursor   int
-	selected string
+	selected SelectOption
 	done     bool
 }
 
@@ -74,9 +74,9 @@ func (m selectModel) View() string {
 	sb.WriteString(fmt.Sprintf("%s:\n", m.prompt))
 	for i, opt := range m.options {
 		if i == m.cursor {
-			sb.WriteString(fmt.Sprintf("  ▶ %s\n", opt))
+			sb.WriteString(fmt.Sprintf("  ▶ %s\n", opt.Text))
 		} else {
-			sb.WriteString(fmt.Sprintf("    %s\n", opt))
+			sb.WriteString(fmt.Sprintf("    %s\n", opt.Text))
 		}
 	}
 	return sb.String()
@@ -101,7 +101,7 @@ func (e *Executor) executeSelect(step Step) error {
 		return fmt.Errorf("selection cancelled")
 	}
 
-	fmt.Printf("\n  ✔  %s\n\n", final.selected)
-	e.parser.Set(step.Variable, final.selected)
+	fmt.Printf("\n  ✔  %s\n\n", final.selected.Text)
+	e.parser.Set(step.Variable, final.selected.Value)
 	return nil
 }
