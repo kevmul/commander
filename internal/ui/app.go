@@ -37,6 +37,10 @@ var keys = keyMap{
 		key.WithKeys("n"),
 		key.WithHelp("n", "new"),
 	),
+	Add: key.NewBinding(
+		key.WithKeys("a"),
+		key.WithHelp("a", "add command"),
+	)
 	Edit: key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),
