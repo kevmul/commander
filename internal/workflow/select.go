@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -17,25 +18,51 @@ type selectModel struct {
 	done     bool
 }
 
+type keyMap struct {
+	Up   key.Binding
+	Down key.Binding
+	Run  key.Binding
+	Quit key.Binding
+}
+
+var keys = keyMap{
+	Up: key.NewBinding(
+		key.WithKeys("k", "up"),
+		key.WithHelp("k, up", "Move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("j", "down"),
+		key.WithHelp("j, down", "Move down"),
+	),
+	Run: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↵", "run"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("q", "ctrl+c"),
+		key.WithHelp("q, ctrl+c", "quit"),
+	),
+}
+
 func (m selectModel) Init() tea.Cmd { return nil }
 
 func (m selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyUp:
+		switch {
+		case key.Matches(msg, keys.Up):
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case tea.KeyDown:
+		case key.Matches(msg, keys.Down):
 			if m.cursor < len(m.options)-1 {
 				m.cursor++
 			}
-		case tea.KeyEnter:
+		case key.Matches(msg, keys.Run):
 			m.selected = m.options[m.cursor]
 			m.done = true
 			return m, tea.Quit
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
 		}
 	}
@@ -44,7 +71,7 @@ func (m selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m selectModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("? %s:\n", m.prompt))
+	sb.WriteString(fmt.Sprintf("%s:\n", m.prompt))
 	for i, opt := range m.options {
 		if i == m.cursor {
 			sb.WriteString(fmt.Sprintf("  ▶ %s\n", opt))
@@ -74,7 +101,7 @@ func (e *Executor) executeSelect(step Step) error {
 		return fmt.Errorf("selection cancelled")
 	}
 
-	fmt.Printf("  ✔ %s\n\n", final.selected)
+	fmt.Printf("\n  ✔  %s\n\n", final.selected)
 	e.parser.Set(step.Variable, final.selected)
 	return nil
 }

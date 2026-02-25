@@ -40,7 +40,7 @@ func (m confirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m confirmModel) View() string {
-	return fmt.Sprintf("? %s (y/n): ", m.prompt)
+	return fmt.Sprintf("%s (y/n): ", m.prompt)
 }
 
 func (e *Executor) executeConfirm(step Step) error {

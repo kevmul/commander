@@ -40,13 +40,13 @@ func (m inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m inputModel) View() string {
-	return fmt.Sprintf("%s %s▌", m.prompt, m.value)
+	return fmt.Sprintf("%s %s ", m.prompt, m.value)
 }
 
 func (e *Executor) executeInput(step Step) error {
 	prompt := e.parser.Parse(step.Prompt)
 
-	m := inputModel{prompt: fmt.Sprintf("? %s:", prompt)}
+	m := inputModel{prompt: fmt.Sprintf("%s:", prompt)}
 	p := tea.NewProgram(m)
 
 	result, err := p.Run()
