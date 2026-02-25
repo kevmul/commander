@@ -26,6 +26,7 @@ var (
 
 type keyMap struct {
 	New    key.Binding
+	Add    key.Binding
 	Edit   key.Binding
 	Delete key.Binding
 	Run    key.Binding
@@ -40,7 +41,7 @@ var keys = keyMap{
 	Add: key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "add command"),
-	)
+	),
 	Edit: key.NewBinding(
 		key.WithKeys("e"),
 		key.WithHelp("e", "edit"),

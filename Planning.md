@@ -20,12 +20,12 @@ Each Step runs in your terminal to display an input for text, a select, and a co
         {
             "type": "input",
             "helpText": "",
-            "label": "Enter your name.",
+            "prompt": "Enter your name.",
             "variable": "user_name",
         },
         {
             "type": "select",
-            "label": "Select the current time of day."
+            "prompt": "Select the current time of day."
             "helpText": "This is some help text for choosing the correct time of day!",
             "options": "Morning, Afternoon, Evening",
             "variable": "time_of_day",
@@ -47,11 +47,11 @@ Or in yaml
   description: This example can run a command to greet the user.
   steps:
   - type: input
-    label: Enter your name.
+    prompt: Enter your name.
     helpText: 
     variable: user_name
   - type: select
-    label: Select the current time of day.
+    prompt: Select the current time of day.
     helpText: This is some help text for choosing the correct time of day!
     options: Morning, Afternoon, Evening
     variable: time_of_day
@@ -81,12 +81,12 @@ workflows:
         command
 
 - Input
-    - label 
+    - prompt 
     - helpText
     - variable
 
 - Select
-    - label
+    - prompt
     - helpText
     - options
     - variable

@@ -21,6 +21,7 @@ const (
 type Step struct {
 	Type           StepType `json:"type"`
 	Prompt         string   `json:"prompt,omitempty"`
+	HelpText       string   `json:"helpText,omitempty"`
 	Variable       string   `json:"variable,omitempty"`
 	Options        []string `json:"options,omitempty"`
 	Command        string   `json:"command,omitempty"`
