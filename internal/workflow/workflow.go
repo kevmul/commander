@@ -19,15 +19,18 @@ type SelectOption struct {
 	Value string `json:"value"`
 }
 
-// func (o SelectOption) DisplayText() string   { return o.Text }
-// func (o SelectOption) ResolvedValue() string { return o.Value }
-
 const (
 	StepTypeInput   StepType = "input"
 	StepTypeSelect  StepType = "select"
 	StepTypeConfirm StepType = "confirm"
 	StepTypeCommand StepType = "command"
 )
+
+type Condition struct {
+	Variable string `json:"variable"`
+	Operator string `json:"operator"` // "equals", "not_equals", "empty", "not_empty"
+	Value    string `json:"value,omitempty"`
+}
 
 // Step represents a single step in a workflow
 type Step struct {
@@ -38,6 +41,7 @@ type Step struct {
 	Options        []SelectOption `json:"options,omitempty"`
 	Command        string         `json:"command,omitempty"`
 	Description    string         `json:"description,omitempty"`
+	Condition      *Condition     `json:"condition,omitempty"`
 	CaptureOutput  bool           `json:"capture_output,omitempty"`
 	OutputVariable string         `json:"output_variable,omitempty"`
 	Interactive    bool           `json:"interactive,omitempty"`

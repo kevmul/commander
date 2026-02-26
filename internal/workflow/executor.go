@@ -38,7 +38,34 @@ func (e *Executor) Execute(workflow *Workflow) error {
 	return nil
 }
 
+// evaluateCondition checks if a condition is met based on the current parser variables
+func (e *Executor) evaluateCondition(c *Condition) bool {
+	if c == nil {
+		return true
+	}
+
+	// Get the variable value from the parser
+	val, _ := e.parser.Get(c.Variable)
+
+	switch c.Operator {
+	case "equals":
+		return val == c.Value
+	case "not_equals":
+		return val != c.Value
+	case "empty":
+		return val == ""
+	case "not_empty":
+		return val != ""
+	default:
+		return true
+	}
+}
+
 func (e *Executor) executeStep(step Step, stepNum, totalSteps int) error {
+	if !e.evaluateCondition(step.Condition) {
+		fmt.Printf("Skipping step %d/%d (condition not met)\n", stepNum, totalSteps)
+		return nil
+	}
 	switch step.Type {
 	case StepTypeInput:
 		return e.executeInput(step)
