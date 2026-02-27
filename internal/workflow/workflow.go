@@ -1,12 +1,13 @@
 package workflow
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 // StepType represents the type of step in a workflow
@@ -15,8 +16,8 @@ type StepType string
 // SelectOption represents a key-value select option.
 // If Value is empty, Text is used as both display and value.
 type SelectOption struct {
-	Text  string `json:"text"`
-	Value string `json:"value"`
+	Text  string `yaml:"text"`
+	Value string `yaml:"value"`
 }
 
 const (
@@ -27,33 +28,33 @@ const (
 )
 
 type Condition struct {
-	Variable string `json:"variable"`
-	Operator string `json:"operator"` // "equals", "not_equals", "empty", "not_empty"
-	Value    string `json:"value,omitempty"`
+	Variable string `yaml:"variable"`
+	Operator string `yaml:"operator"` // "equals", "not_equals", "empty", "not_empty"
+	Value    string `yaml:"value,omitempty"`
 }
 
 // Step represents a single step in a workflow
 type Step struct {
-	Type           StepType       `json:"type"`
-	Prompt         string         `json:"prompt,omitempty"`
-	HelpText       string         `json:"helpText,omitempty"`
-	Variable       string         `json:"variable,omitempty"`
-	Options        []SelectOption `json:"options,omitempty"`
-	Command        string         `json:"command,omitempty"`
-	Description    string         `json:"description,omitempty"`
-	Condition      *Condition     `json:"condition,omitempty"`
-	CaptureOutput  bool           `json:"capture_output,omitempty"`
-	OutputVariable string         `json:"output_variable,omitempty"`
-	Interactive    bool           `json:"interactive,omitempty"`
-	DieOnError     bool           `json:"die_on_error,omitempty"`
+	Type           StepType       `yaml:"type"`
+	Prompt         string         `yaml:"prompt,omitempty"`
+	HelpText       string         `yaml:"helpText,omitempty"`
+	Variable       string         `yaml:"variable,omitempty"`
+	Options        []SelectOption `yaml:"options,omitempty"`
+	Command        string         `yaml:"command,omitempty"`
+	Description    string         `yaml:"description,omitempty"`
+	Condition      *Condition     `yaml:"condition,omitempty"`
+	CaptureOutput  bool           `yaml:"capture_output,omitempty"`
+	OutputVariable string         `yaml:"output_variable,omitempty"`
+	Interactive    bool           `yaml:"interactive,omitempty"`
+	DieOnError     bool           `yaml:"die_on_error,omitempty"`
 }
 
 // Workflow represents a complete workflow with multiple steps
 type Workflow struct {
-	Key         string `json:"key"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Steps       []Step `json:"steps"`
+	Key         string `yaml:"key"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description,omitempty"`
+	Steps       []Step `yaml:"steps"`
 }
 
 var (
@@ -87,7 +88,7 @@ func NewStore() (*Store, error) {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	return &Store{filePath: filepath.Join(configDir, "workflows.json")}, nil
+	return &Store{filePath: filepath.Join(configDir, "workflows.yaml")}, nil
 }
 
 // readAll reads all workflows from the file
@@ -101,7 +102,7 @@ func (s *Store) readAll() ([]Workflow, error) {
 	}
 
 	var workflows []Workflow
-	if err := json.Unmarshal(data, &workflows); err != nil {
+	if err := yaml.Unmarshal(data, &workflows); err != nil {
 		return nil, err
 	}
 	return workflows, nil
@@ -109,7 +110,7 @@ func (s *Store) readAll() ([]Workflow, error) {
 
 // writeAll writes all workflows to the file
 func (s *Store) writeAll(workflows []Workflow) error {
-	data, err := json.MarshalIndent(workflows, "", "  ")
+	data, err := yaml.Marshal(workflows)
 	if err != nil {
 		return err
 	}
