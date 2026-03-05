@@ -21,7 +21,7 @@ Store your common dev tasks as reusable workflows with inputs, selections, and c
 		}
 
 		m, err := ui.NewMainModel(store)
-		p := tea.NewProgram(m, tea.WithAltScreen())
+		p := tea.NewProgram(m)
 		_, err = p.Run()
 		if err != nil {
 			return err

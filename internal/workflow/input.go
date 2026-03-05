@@ -2,16 +2,19 @@ package workflow
 
 import (
 	"fmt"
+	"github.com/kevmul/cmdr/internal/styles"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // ─── Input ────────────────────────────────────────────────────────────────────
 
 type inputModel struct {
-	prompt string
-	value  string
-	done   bool
+	prompt   string
+	helpText string
+	value    string
+	done     bool
 }
 
 func (m inputModel) Init() tea.Cmd { return nil }
@@ -40,13 +43,19 @@ func (m inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m inputModel) View() string {
-	return fmt.Sprintf("%s %s ", m.prompt, m.value)
+	cursor := styles.CursorStyle.Render("‣")
+	return lipgloss.JoinVertical(lipgloss.Left,
+		m.prompt,
+		styles.HelpTextStyle.Render(m.helpText),
+		styles.InputStyle.Render(fmt.Sprintf("%s %s", cursor, m.value)),
+	)
 }
 
 func (e *Executor) executeInput(step Step) error {
 	prompt := e.parser.Parse(step.Prompt)
+	helpText := e.parser.Parse(step.HelpText)
 
-	m := inputModel{prompt: fmt.Sprintf("%s:", prompt)}
+	m := inputModel{helpText: helpText, prompt: fmt.Sprintf("%s:", prompt)}
 	p := tea.NewProgram(m)
 
 	result, err := p.Run()

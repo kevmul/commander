@@ -123,42 +123,6 @@ func (m workflowSelectModel) View() string {
 	}
 
 	return m.list.View()
-
-	// var sb strings.Builder
-	// sb.WriteString("Select a workflow:\n")
-	// for i, wf := range m.workflows {
-	//
-	// 	item := styles.ListItemStyle.Render(lipgloss.JoinVertical(
-	// 		lipgloss.Left,
-	// 		styles.ListItemTitleStyle.Render(wf.Name),
-	// 		styles.ListItemDescriptionStyle.Render(wf.Description),
-	// 	))
-	//
-	// 	if i == m.cursor {
-	// 		item = styles.ListItemSelectedStyle.Render(lipgloss.JoinVertical(
-	// 			lipgloss.Left,
-	// 			styles.ListItemSelectedTitleStyle.Render(wf.Name),
-	// 			styles.ListItemSelectedDescriptionStyle.Render(wf.Description),
-	// 		))
-	// 	}
-	// 	fmt.Fprint(&sb, item, "\n")
-	//
-	// 	// if i == m.cursor {
-	// 	// 	if wf.Description != "" {
-	// 	// 		fmt.Fprint(&sb, styles.SelectedItemStyle.Render(fmt.Sprintf("  ▶|%s\n   |%s", wf.Name, wf.Description))+"\n")
-	// 	// 	} else {
-	// 	// 		fmt.Fprint(&sb, styles.SelectedItemStyle.Render(fmt.Sprintf("  ▶|%s", wf.Name))+"\n")
-	// 	// 	}
-	// 	// } else {
-	// 	// 	if wf.Description != "" {
-	// 	// 		fmt.Fprintf(&sb, "   |%s\n   |%s\n", wf.Name, wf.Description)
-	// 	// 	} else {
-	// 	// 		fmt.Fprintf(&sb, "   |%s\n", wf.Name)
-	// 	// 	}
-	// 	// }
-	// }
-	// fmt.Fprintf(&sb, "\n  ↑/↓ to move · enter to select · esc to cancel\n")
-	// return sb.String()
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────

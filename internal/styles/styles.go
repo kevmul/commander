@@ -85,6 +85,16 @@ var (
 				BorderForeground(Muted).
 				Padding(0, 1)
 
+	InputStyle = lipgloss.NewStyle()
+
+	HelpTextStyle = lipgloss.NewStyle().
+			Foreground(Muted).
+			Italic(true)
+
+	CursorStyle = lipgloss.NewStyle().
+			Foreground(Primary).
+			Bold(true)
+
 	// List styles
 	SelectedItemStyle = lipgloss.NewStyle().
 				Foreground(Secondary).

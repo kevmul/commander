@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kevmul/cmdr/internal/styles"
 )
 
 // ─── Select ───────────────────────────────────────────────────────────────────
@@ -71,12 +72,13 @@ func (m selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m selectModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s:\n", m.prompt))
+	fmt.Fprintf(&sb, "%s:\n", m.prompt)
 	for i, opt := range m.options {
 		if i == m.cursor {
-			sb.WriteString(fmt.Sprintf("  ▶ %s\n", opt.Text))
+			cursor := styles.CursorStyle.Render("▶")
+			fmt.Fprintf(&sb, "  %s %s\n", cursor, styles.SelectedItemStyle.Render(opt.Text))
 		} else {
-			sb.WriteString(fmt.Sprintf("    %s\n", opt.Text))
+			fmt.Fprintf(&sb, "    %s\n", opt.Text)
 		}
 	}
 	return sb.String()
