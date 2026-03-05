@@ -13,14 +13,9 @@ import (
 )
 
 var (
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("205")).
-			Padding(0, 1)
-
 	helpStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Padding(1, 0)
+		Foreground(lipgloss.Color("241")).
+		Padding(1, 0)
 )
 
 type keyMap struct {

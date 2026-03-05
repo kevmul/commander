@@ -67,6 +67,8 @@ func (e *Executor) executeStep(step Step, stepNum, totalSteps int) error {
 		return nil
 	}
 	switch step.Type {
+	case StepTypeMessage:
+		return e.executeMessage(step)
 	case StepTypeInput:
 		return e.executeInput(step)
 	case StepTypeSelect:

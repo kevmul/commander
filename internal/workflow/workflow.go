@@ -21,6 +21,7 @@ type SelectOption struct {
 }
 
 const (
+	StepTypeMessage StepType = "message"
 	StepTypeInput   StepType = "input"
 	StepTypeSelect  StepType = "select"
 	StepTypeConfirm StepType = "confirm"
@@ -39,6 +40,7 @@ type Step struct {
 	Prompt         string         `yaml:"prompt,omitempty"`
 	HelpText       string         `yaml:"helpText,omitempty"`
 	Variable       string         `yaml:"variable,omitempty"`
+	Variant        string         `yaml:"variant,omitempty"` // for styling variants like "error", "warning", etc.
 	Options        []SelectOption `yaml:"options,omitempty"`
 	Command        string         `yaml:"command,omitempty"`
 	Description    string         `yaml:"description,omitempty"`
