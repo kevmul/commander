@@ -13,6 +13,7 @@ var (
 	Muted        = lipgloss.Color("#6B7280")
 	Text         = lipgloss.Color("#D4D4D4")
 	Background   = lipgloss.Color("#1E1E1E")
+	Clear        = lipgloss.Color("")
 	CustomBorder = lipgloss.Border{
 		Top:         "─",
 		Bottom:      "─",
@@ -90,6 +91,33 @@ var (
 				Bold(true)
 
 	NormalItemStyle = lipgloss.NewStyle()
+
+	ListItemStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderLeft(false).
+			MarginLeft(1).
+			BorderForeground(Clear).
+			Foreground(Text).
+			Padding(0, 2).
+			MarginBottom(1)
+
+	ListItemSelectedStyle = ListItemStyle.
+				BorderLeft(true).
+				BorderForeground(Secondary).
+				Foreground(Primary).
+				Bold(true).
+				Padding(0, 1)
+
+	ListItemTitleStyle = lipgloss.NewStyle().
+				Foreground(Text)
+	ListItemDescriptionStyle = lipgloss.NewStyle().
+					Foreground(Muted)
+	ListItemSelectedTitleStyle = lipgloss.NewStyle().
+					Foreground(Primary).
+					Bold(true)
+	ListItemSelectedDescriptionStyle = lipgloss.NewStyle().
+						Foreground(Secondary).
+						Bold(true)
 
 	// Command Styles
 	CommandStyle = lipgloss.NewStyle().

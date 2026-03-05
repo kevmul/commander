@@ -2,10 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
+	// "strings"
 
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+
+	// "github.com/charmbracelet/lipgloss"
+	// "github.com/kevmul/cmdr/internal/styles"
+	"github.com/kevmul/cmdr/internal/styles"
 	"github.com/kevmul/cmdr/internal/workflow"
 	"github.com/spf13/cobra"
 )
@@ -14,8 +19,9 @@ import (
 
 type workflowSelectModel struct {
 	workflows []workflow.Workflow
-	cursor    int
 	selected  *workflow.Workflow
+	list      list.Model
+	listItems []list.Item
 	done      bool
 }
 
@@ -47,27 +53,66 @@ var keys = keyMap{
 
 func (m workflowSelectModel) Init() tea.Cmd { return nil }
 
+type workflowItem struct {
+	workflow.Workflow
+}
+
+func (i workflowItem) Title() string {
+	key := styles.MutedTextStyle.Render(fmt.Sprintf("(%s)", i.Key))
+	return fmt.Sprintf("%s %s", i.Name, key)
+}
+func (i workflowItem) Description() string { return i.Workflow.Description }
+func (i workflowItem) FilterValue() string { return i.Name }
+
+func NewWorkflowSelectModel(workflows []workflow.Workflow) workflowSelectModel {
+
+	items := make([]list.Item, len(workflows))
+	for i, item := range workflows {
+		items[i] = workflowItem{item}
+	}
+
+	d := list.NewDefaultDelegate()
+	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(styles.Primary).BorderLeftForeground(styles.Primary)
+	d.Styles.SelectedDesc = d.Styles.SelectedDesc.Foreground(styles.Tertiary).BorderLeftForeground(styles.Primary)
+
+	l := list.New(items, d, 0, 0)
+	l.Title = "Command Runner"
+	l.SetShowTitle(false)
+	l.SetShowStatusBar(true)
+	l.SetFilteringEnabled(true)
+	l.SetShowHelp(false)
+	l.SetShowHelp(false)
+	return workflowSelectModel{
+		workflows: workflows,
+		listItems: items,
+		list:      l,
+		selected:  nil,
+		done:      false,
+	}
+}
+
 func (m workflowSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		const itemHeight = 2
+		const maxVisibleItems = 10
+		h := min(len(m.listItems)*itemHeight+4, maxVisibleItems*itemHeight+4)
+		m.list.SetSize(msg.Width, h)
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keys.Up):
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case key.Matches(msg, keys.Down):
-			if m.cursor < len(m.workflows)-1 {
-				m.cursor++
-			}
 		case key.Matches(msg, keys.Run):
-			m.selected = &m.workflows[m.cursor]
+			m.selected = &m.workflows[m.list.Index()]
 			m.done = true
 			return m, tea.Quit
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
 		}
 	}
-	return m, nil
+	m.list, cmd = m.list.Update(msg)
+
+	return m, cmd
 }
 
 func (m workflowSelectModel) View() string {
@@ -77,25 +122,43 @@ func (m workflowSelectModel) View() string {
 		return ""
 	}
 
-	var sb strings.Builder
-	sb.WriteString("Select a workflow:\n")
-	for i, wf := range m.workflows {
-		if i == m.cursor {
-			if wf.Description != "" {
-				sb.WriteString(fmt.Sprintf("  ▶ %s — %s\n", wf.Name, wf.Description))
-			} else {
-				sb.WriteString(fmt.Sprintf("  ▶ %s\n", wf.Name))
-			}
-		} else {
-			if wf.Description != "" {
-				sb.WriteString(fmt.Sprintf("    %s — %s\n", wf.Name, wf.Description))
-			} else {
-				sb.WriteString(fmt.Sprintf("    %s\n", wf.Name))
-			}
-		}
-	}
-	sb.WriteString("\n  ↑/↓ to move · enter to select · esc to cancel\n")
-	return sb.String()
+	return m.list.View()
+
+	// var sb strings.Builder
+	// sb.WriteString("Select a workflow:\n")
+	// for i, wf := range m.workflows {
+	//
+	// 	item := styles.ListItemStyle.Render(lipgloss.JoinVertical(
+	// 		lipgloss.Left,
+	// 		styles.ListItemTitleStyle.Render(wf.Name),
+	// 		styles.ListItemDescriptionStyle.Render(wf.Description),
+	// 	))
+	//
+	// 	if i == m.cursor {
+	// 		item = styles.ListItemSelectedStyle.Render(lipgloss.JoinVertical(
+	// 			lipgloss.Left,
+	// 			styles.ListItemSelectedTitleStyle.Render(wf.Name),
+	// 			styles.ListItemSelectedDescriptionStyle.Render(wf.Description),
+	// 		))
+	// 	}
+	// 	fmt.Fprint(&sb, item, "\n")
+	//
+	// 	// if i == m.cursor {
+	// 	// 	if wf.Description != "" {
+	// 	// 		fmt.Fprint(&sb, styles.SelectedItemStyle.Render(fmt.Sprintf("  ▶|%s\n   |%s", wf.Name, wf.Description))+"\n")
+	// 	// 	} else {
+	// 	// 		fmt.Fprint(&sb, styles.SelectedItemStyle.Render(fmt.Sprintf("  ▶|%s", wf.Name))+"\n")
+	// 	// 	}
+	// 	// } else {
+	// 	// 	if wf.Description != "" {
+	// 	// 		fmt.Fprintf(&sb, "   |%s\n   |%s\n", wf.Name, wf.Description)
+	// 	// 	} else {
+	// 	// 		fmt.Fprintf(&sb, "   |%s\n", wf.Name)
+	// 	// 	}
+	// 	// }
+	// }
+	// fmt.Fprintf(&sb, "\n  ↑/↓ to move · enter to select · esc to cancel\n")
+	// return sb.String()
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────
@@ -120,7 +183,7 @@ var listCmd = &cobra.Command{
 			return nil
 		}
 
-		m := workflowSelectModel{workflows: workflows}
+		m := NewWorkflowSelectModel(workflows)
 		p := tea.NewProgram(m)
 
 		result, err := p.Run()

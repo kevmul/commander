@@ -3,10 +3,7 @@ package ui
 import (
 	"fmt"
 
-	"github.com/kevmul/cmdr/internal/messages"
 	"github.com/kevmul/cmdr/internal/styles"
-	"github.com/kevmul/cmdr/internal/ui/components/modal"
-	"github.com/kevmul/cmdr/internal/utils"
 	"github.com/kevmul/cmdr/internal/workflow"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -27,31 +24,11 @@ var (
 )
 
 type keyMap struct {
-	New    key.Binding
-	Add    key.Binding
-	Edit   key.Binding
-	Delete key.Binding
-	Run    key.Binding
-	Quit   key.Binding
+	Run  key.Binding
+	Quit key.Binding
 }
 
 var keys = keyMap{
-	New: key.NewBinding(
-		key.WithKeys("n"),
-		key.WithHelp("n", "new"),
-	),
-	Add: key.NewBinding(
-		key.WithKeys("a"),
-		key.WithHelp("a", "add command"),
-	),
-	Edit: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit"),
-	),
-	Delete: key.NewBinding(
-		key.WithKeys("d"),
-		key.WithHelp("d", "delete"),
-	),
 	Run: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("↵", "run"),
@@ -78,9 +55,6 @@ type mainModel struct {
 	store    *workflow.Store
 	selected *workflow.Workflow
 	action   string // "run", "edit", "delete", "create", ""
-
-	showModal bool
-	modal     *modal.Model
 
 	width  int
 	height int
@@ -115,6 +89,7 @@ func NewMainModel(store *workflow.Store) (tea.Model, error) {
 	return &mainModel{
 		list:  l,
 		store: store,
+		ready: false,
 	}, nil
 }
 
@@ -123,9 +98,6 @@ func (m *mainModel) Init() tea.Cmd {
 }
 
 func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	var cmds []tea.Cmd
-
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
@@ -137,35 +109,9 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		if m.showModal {
-			// Let the modal handle key messages
-			break
-		}
-
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
-
-		case key.Matches(msg, keys.New):
-			m.action = "create"
-			m.showModal = true
-			m.modal = modal.NewCreateWorkflow(m.store)
-
-			return m, nil
-
-		case key.Matches(msg, keys.Edit):
-			if item, ok := m.list.SelectedItem().(workflowItem); ok {
-				m.selected = &item.Workflow
-				m.action = "edit"
-				return m, tea.Quit
-			}
-
-		case key.Matches(msg, keys.Delete):
-			if item, ok := m.list.SelectedItem().(workflowItem); ok {
-				m.selected = &item.Workflow
-				m.action = "delete"
-				return m, tea.Quit
-			}
 
 		case key.Matches(msg, keys.Run):
 			if item, ok := m.list.SelectedItem().(workflowItem); ok {
@@ -174,68 +120,15 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
-
-	case messages.ModalClosedMsg:
-		m.showModal = false
-		m.modal = nil
-
-	case messages.ShowModalMsg:
-		m.showModal = true
-		switch msg.ModalType {
-		case "create_command":
-			m.modal = modal.NewCreateCommand()
-			// case "edit_command":
-			// 	if item, ok := m.list.SelectedItem().(workflowItem); ok {
-			// 		m.selected = &item.Workflow
-			// 		m.modal = modal.NewEditWorkflow(m.store, m.selected)
-			// 	}
-		}
-
-	case messages.WorkflowCreateMsg:
-		newWorkflow := workflow.Workflow{
-			Name:        msg.Name,
-			Description: msg.Description,
-		}
-		err := m.store.Save(&newWorkflow)
-		if err != nil {
-			// Handle error (e.g., show an error modal)
-			break
-		}
-		m.showModal = false
-		m.modal = nil
-
-		// Refresh the workflow list
-		workflows, err := m.store.List()
-		if err != nil {
-			break
-		}
-		items := make([]list.Item, len(workflows))
-		for i, w := range workflows {
-			items[i] = workflowItem{w}
-		}
-		m.list.SetItems(items)
-
-	}
-	if m.showModal && m.modal != nil {
-		*m.modal, cmd = m.modal.Update(msg)
-		cmds = append(cmds, cmd)
 	}
 
-	if !m.showModal {
-		m.list, cmd = m.list.Update(msg)
-		cmds = append(cmds, cmd)
-	}
-	return m, tea.Batch(cmds...)
+	return m, nil
 }
 
 func (m *mainModel) View() string {
 
 	helpText := helpStyle.Render("[n] New  [e] Edit  [d] Delete  [↵] Run  [q] Quit")
 	currentView := m.list.View() + "\n" + helpText
-
-	if m.showModal && m.modal != nil {
-		currentView = utils.RenderWithModal(m.height, m.width, currentView, m.modal.View())
-	}
 
 	return currentView
 }
