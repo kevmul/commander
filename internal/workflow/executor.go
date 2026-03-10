@@ -9,18 +9,21 @@ import (
 // Executor runs workflows
 type Executor struct {
 	parser *template.Parser
+	env    *WorkflowEnv
 }
 
 // NewExecutor creates a new workflow executor
 func NewExecutor() *Executor {
 	return &Executor{
 		parser: template.NewParser(),
+		env:    NewWorkflowEnv(),
 	}
 }
 
 // Execute runs a workflow
 func (e *Executor) Execute(workflow *Workflow) error {
 	e.parser.Reset()
+	e.env.Reset()
 
 	fmt.Printf("\nRunning workflow: %s\n", workflow.Name)
 	if workflow.Description != "" {
@@ -44,7 +47,6 @@ func (e *Executor) evaluateCondition(c *Condition) bool {
 		return true
 	}
 
-	// Get the variable value from the parser
 	val, _ := e.parser.Get(c.Variable)
 
 	switch c.Operator {
@@ -66,6 +68,7 @@ func (e *Executor) executeStep(step Step, stepNum, totalSteps int) error {
 		fmt.Printf("Skipping step %d/%d (condition not met)\n", stepNum, totalSteps)
 		return nil
 	}
+
 	switch step.Type {
 	case StepTypeMessage:
 		return e.executeMessage(step)

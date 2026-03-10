@@ -40,15 +40,16 @@ type Step struct {
 	Prompt         string         `yaml:"prompt,omitempty"`
 	HelpText       string         `yaml:"helpText,omitempty"`
 	Variable       string         `yaml:"variable,omitempty"`
-	Variant        string         `yaml:"variant,omitempty"` // for styling variants like "error", "warning", etc.
+	Variant        string         `yaml:"variant,omitempty"`
 	Options        []SelectOption `yaml:"options,omitempty"`
 	Command        string         `yaml:"command,omitempty"`
 	Description    string         `yaml:"description,omitempty"`
 	Condition      *Condition     `yaml:"condition,omitempty"`
 	CaptureOutput  bool           `yaml:"capture_output,omitempty"`
 	OutputVariable string         `yaml:"output_variable,omitempty"`
+	CaptureEnv     bool           `yaml:"capture_env,omitempty"`  // parse stdout for KEY=VALUE pairs and store in workflow env
+	IgnoreError    bool           `yaml:"ignore_error,omitempty"` // if true, a non-zero exit code does not stop the workflow
 	Interactive    bool           `yaml:"interactive,omitempty"`
-	DieOnError     bool           `yaml:"die_on_error,omitempty"`
 }
 
 // Workflow represents a complete workflow with multiple steps
